@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoA Army Builder</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#1a1a1e;color:#e0e0e0;font-size:13px}
+h1{font-size:16px;font-weight:500;color:#f0f0f0}
+
+/* ── Layout ── */
+.app{display:grid;grid-template-columns:320px 1fr;min-height:100vh}
+.sidebar{background:#1e1e24;border-right:0.5px solid #2a2a32;padding:1rem;overflow-y:auto}
+.main{padding:1rem;overflow-y:auto}
+
+/* ── Cards ── */
+.card{background:#242428;border:0.5px solid #3a3a42;border-radius:10px;padding:.875rem 1rem;margin-bottom:10px}
+.card-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:#666;margin-bottom:8px}
+
+/* ── Forms ── */
+select,input[type=text],input[type=number]{font-family:inherit;font-size:13px;padding:5px 8px;border:0.5px solid #444;border-radius:6px;background:#1a1a1e;color:#e0e0e0;width:100%}
+input[type=text]{margin-bottom:0}
+label.field-label{font-size:11px;color:#888;display:block;margin-bottom:3px;margin-top:8px}
+
+/* ── Buttons ── */
+.btn{padding:7px 12px;font-size:12px;font-weight:500;border-radius:7px;cursor:pointer;border:0.5px solid #555;background:#1a1a1e;color:#e0e0e0;transition:background .12s}
+.btn:hover{background:#2a2a30}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:#1a3a5c;color:#7ab8f5;border-color:#2a6aac}
+.btn.primary:hover{background:#2a4a6c}
+.btn.danger{background:#3a1010;color:#f57878;border-color:#7a2020}
+.btn.danger:hover{background:#4a1a1a}
+.btn.warn{background:#3a2a00;color:#f5c842;border-color:#7a5500}
+.btn.full{width:100%;margin-top:6px}
+.btn.small{padding:3px 8px;font-size:11px}
+
+/* ── Platoon blocks ── */
+.platoon{background:#1e1e24;border:0.5px solid #3a3a42;border-radius:10px;margin-bottom:12px;overflow:hidden}
+.platoon-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:#242428;border-bottom:0.5px solid #3a3a42}
+.platoon-title{font-size:13px;font-weight:500;color:#7ab8f5}
+.platoon-pts{font-size:12px;color:#f5c842}
+.platoon-body{padding:.75rem 1rem}
+.section-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;background:#111114;border-radius:7px;padding:6px 8px}
+.section-name{flex:1;font-size:12px;color:#e0e0e0}
+.section-pts{font-size:12px;color:#f5c842;min-width:40px;text-align:right}
+.section-actions{display:flex;gap:4px}
+.add-section-row{display:flex;gap:6px;margin-top:8px}
+.add-section-row select{flex:1}
+.platoon-warning{font-size:11px;color:#f5c842;margin-top:6px;padding:4px 8px;background:#3a2a00;border-radius:5px}
+
+/* ── Points bar ── */
+.pts-bar{background:#242428;border:0.5px solid #3a3a42;border-radius:10px;padding:.75rem 1rem;margin-bottom:10px}
+.pts-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pts-label{font-size:11px;color:#888}
+.pts-val{font-size:18px;font-weight:500;color:#f5c842}
+.pts-limit{font-size:11px;color:#666}
+.pts-track{height:6px;background:#1a1a1e;border-radius:3px;overflow:hidden;margin-top:4px}
+.pts-fill{height:100%;background:#7ab8f5;border-radius:3px;transition:width .3s}
+.pts-fill.over{background:#f57878}
+.pts-fill.warn{background:#f5c842}
+
+/* ── Warnings ── */
+.warnings{margin-top:8px}
+.warn-item{font-size:11px;color:#f5c842;padding:4px 8px;background:#3a2a00;border-radius:5px;margin-bottom:4px}
+.warn-item.error{color:#f57878;background:#3a1010}
+
+/* ── Assets ── */
+.asset-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.asset-row label{font-size:12px;color:#888;min-width:120px}
+.asset-row input{width:60px}
+
+/* ── Print sheet ── */
+@media screen{
+  #printSheet{display:none}
+  .print-btn-row{display:flex;gap:8px;margin-top:10px}
+}
+@media print{
+  body{background:#fff;color:#000}
+  .app{display:block}
+  .sidebar,.main,.pts-bar,.warnings,.print-btn-row,button{display:none!important}
+  #printSheet{display:block!important;padding:1rem}
+  .p-header{border-bottom:2px solid #000;margin-bottom:1rem;padding-bottom:.5rem}
+  .p-army-name{font-size:20px;font-weight:700}
+  .p-meta{font-size:12px;color:#444;margin-top:2px}
+  .p-platoon{margin-bottom:1.5rem;page-break-inside:avoid}
+  .p-platoon-title{font-size:14px;font-weight:600;border-bottom:1px solid #ccc;padding-bottom:3px;margin-bottom:8px}
+  .p-unit{margin-bottom:10px;padding:6px 8px;border:0.5px solid #ccc;border-radius:4px}
+  .p-unit-name{font-size:13px;font-weight:600;display:flex;justify-content:space-between}
+  .p-stat-line{font-size:11px;color:#333;margin-top:2px}
+  .p-weapons{font-size:11px;margin-top:3px}
+  .p-keywords{font-size:11px;color:#555;margin-top:2px;font-style:italic}
+  .p-struct{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;align-items:center}
+  .p-struct-label{font-size:10px;color:#555}
+  .p-struct-box{width:18px;height:18px;border:1.5px solid #000;border-radius:3px;display:inline-block}
+  .p-warnings{margin-top:1rem;padding:8px;border:1px solid #f5a623;border-radius:4px;background:#fffbe6}
+  .p-warn-item{font-size:11px;color:#7a5000;margin-bottom:2px}
+  .p-assets{margin-bottom:1rem}
+  .p-pts-summary{font-size:12px;font-weight:600;margin-top:.5rem}
+}
+
+/* ── Misc ── */
+.sep{height:0.5px;background:#2a2a32;margin:10px 0}
+.tog-row{display:flex;gap:4px;margin-top:4px}
+.tog{font-size:11px;padding:3px 10px;border:1.5px solid #444;border-radius:6px;cursor:pointer;background:#1a1a1e;color:#888}
+.tog.active{background:#1a3a5c;color:#7ab8f5;border-color:#2a6aac;font-weight:500}
+.tog.active.ec{background:#0f2e1a;color:#6ecf8e;border-color:#1a6e3a}
+.empty-state{color:#555;font-size:12px;text-align:center;padding:2rem}
+.platoon-controls{display:flex;gap:6px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ════════════════ SIDEBAR ════════════════ -->
+<div class="sidebar">
+  <h1 style="margin-bottom:1rem">CoA Army Builder</h1>
+
+  <div class="card">
+    <div class="card-title">Army setup</div>
+    <label class="field-label">Army name</label>
+    <input type="text" id="armyName" placeholder="Unnamed force" oninput="refresh()">
+    <label class="field-label">Faction</label>
+    <div class="tog-row">
+      <button class="tog active" data-val="SU" onclick="setFaction(this)">Sol Union</button>
+      <button class="tog" data-val="EC" onclick="setFaction(this)">Eastern Coalition</button>
+    </div>
+    <label class="field-label">Game size</label>
+    <div class="tog-row">
+      <button class="tog active" data-val="500" onclick="setSize(this)">500</button>
+      <button class="tog" data-val="1000" onclick="setSize(this)">1000</button>
+      <button class="tog" data-val="1500" onclick="setSize(this)">1500</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Strategic assets</div>
+    <div style="font-size:11px;color:#888;margin-bottom:8px">Airstrikes OR artillery — not both</div>
+    <div class="asset-row">
+      <label>Airstrikes (12pts ea)</label>
+      <input type="number" id="airstrikes" min="0" max="6" value="0" style="width:55px" oninput="refresh()">
+    </div>
+    <div class="asset-row">
+      <label>Artillery (15pts ea)</label>
+      <input type="number" id="artillery" min="0" max="4" value="0" style="width:55px" oninput="refresh()">
+    </div>
+    <div id="assetWarning" class="warn-item" style="display:none;margin-top:6px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Add platoon</div>
+    <button class="btn primary full" onclick="addPlatoon()">+ Add platoon</button>
+  </div>
+
+  <div class="sep"></div>
+  <div class="pts-bar" id="ptsBar">
+    <div class="pts-row">
+      <span class="pts-label">Points used</span>
+      <span class="pts-val" id="ptsUsed">0</span>
+    </div>
+    <div class="pts-row" style="margin-bottom:0">
+      <span class="pts-limit" id="ptsLimit">of 500</span>
+      <span class="pts-limit" id="ptsRemain">500 remaining</span>
+    </div>
+    <div class="pts-track"><div class="pts-fill" id="ptsFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="warnings" id="warningsPanel"></div>
+
+  <div class="print-btn-row">
+    <button class="btn primary full" onclick="generatePrint()">Generate army sheet</button>
+  </div>
+</div>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<div class="main">
+  <div id="platoonContainer">
+    <div class="empty-state">No platoons yet — add your first platoon from the sidebar.</div>
+  </div>
+</div>
+
+</div>
+
+<!-- ════════════════ PRINT SHEET ════════════════ -->
+<div id="printSheet"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+
+const UNIT_DB = {
+  // ── SU individual units ──
+  "SU_std_squad":{faction:"SU",name:"SU Standard Squad",role:"infantry",skill:"D6",move:4,def:7,struct:null,melee:1,weapons:[{n:"RCM",dmg:"D4",rof:2,rules:"Infantry"},{n:"ARQ LMG",dmg:"D4",rof:3,rules:"Infantry"}],kw:"Infantry",pts:49,models:4,note:"3× Combat Infantry + 1× WC LMG Drone"},
+  "SU_engineer":{faction:"SU",name:"Engineer Team",role:"infantry",skill:"D6",move:4,def:7,struct:null,melee:1,weapons:[{n:"SCM",dmg:"D4",rof:3,rules:"Infantry"},{n:"FPD 2",dmg:"D8",rof:1,rules:"Drone, Blast 2"}],kw:"Infantry, Drone, ECM",pts:52,models:4,note:"3× SCM Infantry + 1× Engineer"},
+  "SU_antiarmor":{faction:"SU",name:"Anti-Armor Team",role:"infantry",skill:"D6",move:4,def:7,struct:null,melee:1,weapons:[{n:"SCM",dmg:"D4",rof:3,rules:"Infantry"},{n:"AAR",dmg:"D10",rof:1,rules:"Anti-material"}],kw:"Infantry",pts:53,models:4,note:"3× SCM Infantry + 1× Anti-Armor"},
+  "SU_scouts":{faction:"SU",name:"Scout Team",role:"infantry",skill:"D6",move:8,def:7,struct:null,melee:1,weapons:[{n:"RCM",dmg:"D4",rof:2,rules:"Infantry"}],kw:"Infantry, Scout",pts:64,models:4,note:"4× Combat Scout"},
+  "SU_power_armor":{faction:"SU",name:"Urban Tactical (Power Armor)",role:"powerarmor",skill:"D8",move:4,def:8,struct:null,melee:1,weapons:[{n:"ARQ LMG",dmg:"D4",rof:3,rules:"Infantry"},{n:"GOAT 100",dmg:"D12",rof:1,rules:"Guided, Blast 2"}],kw:"Infantry, Jump, Tough",pts:35,models:1,note:"Single model"},
+  "SU_bull_duck":{faction:"SU",name:"Bull Duck APC",role:"light armor",skill:"D6",move:8,def:9,struct:4,melee:2,weapons:[{n:"GMP 60",dmg:"D6",rof:1,rules:"Blast 2, Infantry"}],kw:"Amphibious, Transport 8",pts:53,models:1,note:"Carries 2 infantry squads — counts as 3rd platoon slot",organic:false,transport:true},
+  "SU_hoplite":{faction:"SU",name:"Hoplite Light Tank",role:"light armor",skill:"D6",move:8,def:9,struct:4,melee:3,weapons:[{n:"MTG 75",dmg:"D8",rof:2,rules:"Blast 2"},{n:"ARQ LMG",dmg:"D4",rof:3,rules:"Infantry"}],kw:"ERA",pts:51,models:1,note:""},
+  "SU_spartan":{faction:"SU",name:"Spartan",role:"light armor",skill:"D6",move:8,def:9,struct:4,melee:3,weapons:[{n:"MAW",dmg:"D6",rof:3,rules:"Anti-material"},{n:"GOAT 100",dmg:"D12",rof:1,rules:"Guided, Blast 2"}],kw:"ERA, Scout",pts:52,models:1,note:"Hoplite chassis, AT/scout loadout"},
+  "SU_cataphract":{faction:"SU",name:"Cataphract Superheavy",role:"heavy armor",skill:"D6",move:6,def:11,struct:10,melee:4,weapons:[{n:"MMTG X",dmg:"D20",rof:1,rules:"Blast 4, Ignores cover, Brace"},{n:"MTG 75",dmg:"D8",rof:2,rules:"Blast 2"},{n:"GMP 60",dmg:"D6",rof:1,rules:"Blast 2"}],kw:"MaDDs, ERA, Stable turret",pts:87,models:1,note:"Max 1 per 2 platoons",limited:true},
+  "SU_macs":{faction:"SU",name:"MACS",role:"mecha",skill:"D6",move:6,def:9,struct:6,melee:5,weapons:[{n:"MTG 75",dmg:"D8",rof:2,rules:"Blast 2"},{n:"GOAT 100",dmg:"D12",rof:1,rules:"Guided, Blast 2"},{n:"MTG 75",dmg:"D8",rof:2,rules:"Blast 2"}],kw:"MaDDs",pts:77,models:1,note:""},
+
+  // ── EC individual units ──
+  "EC_jade_squad":{faction:"EC",name:"Jade Squad",role:"infantry",skill:"D6",move:4,def:7,struct:null,melee:1,weapons:[{n:"QQSr",dmg:"D6",rof:1,rules:"Infantry"},{n:"QRAS",dmg:"D4",rof:3,rules:"Infantry"}],kw:"Infantry",pts:72,pts_upgrade:75,models:6,note:"1× Sgt + 5× Jade Warriors",upgrade:{name:"Jade Gunner",label:"+Gunner upgrade (+3pts)"}},
+  "EC_signals":{faction:"EC",name:"Signals Team",role:"infantry",skill:"D6",move:4,def:7,struct:null,melee:1,weapons:[{n:"QRAS",dmg:"D4",rof:3,rules:"Infantry"},{n:"ECM",dmg:"—",rof:0,rules:"ECM, Drone"}],kw:"Infantry, ECM, Drone",pts:54,models:4,note:"3× QRAS Jade Warriors + 1× Jade Signals"},
+  "EC_fist":{faction:"EC",name:"Jade Fist Team",role:"infantry",skill:"D6",move:4,def:7,struct:null,melee:1,weapons:[{n:"QRAS",dmg:"D4",rof:3,rules:"Infantry"},{n:"FIST",dmg:"D10",rof:1,rules:"Guided, Blast 2"}],kw:"Infantry",pts:54,models:4,note:"3× QRAS Jade Warriors + 1× Jade Fist"},
+  "EC_scouts":{faction:"EC",name:"Jade Scout Team",role:"infantry",skill:"D6",move:6,def:6,struct:null,melee:1,weapons:[{n:"QRAS",dmg:"D4",rof:3,rules:"Infantry"}],kw:"Infantry, Scout",pts:56,models:4,note:"4× Jade Scouts"},
+  "EC_guardian":{faction:"EC",name:"Guardian Frame",role:"infantry",skill:"D8",move:6,def:8,struct:null,melee:1,weapons:[{n:"QQSr",dmg:"D6",rof:1,rules:"Infantry"},{n:"FIST",dmg:"D10",rof:1,rules:"Guided, Blast 2"}],kw:"Infantry, Powered, Scout",pts:24,models:1,note:"Single model"},
+  "EC_hover_bee":{faction:"EC",name:"Hover Bee",role:"light armor",skill:"D6",move:10,def:8,struct:6,melee:2,weapons:[{n:"LBqs",dmg:"D4",rof:2,rules:"Infantry"}],kw:"Transport 6, Hover",pts:45,models:1,note:"Transport organic to squad slot",organic:true,transport:true},
+  "EC_cloud_fist":{faction:"EC",name:"Cloud Runner (FIST)",role:"light armor",skill:"D6",move:8,def:8,struct:4,melee:2,weapons:[{n:"FIST",dmg:"D10",rof:1,rules:"Guided, Blast 2"}],kw:"Scout, Transport 4, APPD",pts:45,models:1,note:"Transport organic to squad slot",organic:true,transport:true},
+  "EC_cloud_lbqs":{faction:"EC",name:"Cloud Runner (LBqs)",role:"light armor",skill:"D6",move:8,def:8,struct:4,melee:2,weapons:[{n:"LBqs",dmg:"D4",rof:2,rules:"Infantry"}],kw:"Scout, Transport 4, APPD",pts:45,models:1,note:"Transport organic to squad slot",organic:true,transport:true},
+  "EC_cloud_transport":{faction:"EC",name:"Cloud Runner (Transport)",role:"light armor",skill:"D6",move:8,def:8,struct:4,melee:2,weapons:[],kw:"Scout, Transport 4, APPD",pts:45,models:1,note:"Unarmed transport — organic to squad slot",organic:true,transport:true},
+  "EC_iron_cliff":{faction:"EC",name:"Iron Cliff MBT",role:"heavy armor",skill:"D6",move:8,def:10,struct:8,melee:3,weapons:[{n:"Lun ton",dmg:"D8",rof:2,rules:""},{n:"QxLMG",dmg:"D4",rof:3,rules:""}],kw:"Turret, MaDDs",pts:76,models:1,note:""},
+  "EC_land_crab":{faction:"EC",name:"Land Crab",role:"mecha",skill:"D6",move:8,def:10,struct:6,melee:6,weapons:[{n:"Plasma hammer",dmg:"D10",rof:1,rules:"Blast 4"},{n:"QxLMG",dmg:"D4",rof:3,rules:""}],kw:null,pts:65,models:1,note:""},
+  "EC_celestial":{faction:"EC",name:"Celestial Sword",role:"mecha",skill:"D8",move:9,def:9,struct:8,melee:6,weapons:[{n:"Plasma lance",dmg:"D8",rof:1,rules:"Blast 2"},{n:"Qmax",dmg:"D6",rof:3,rules:""}],kw:"MaDDs, Shield",pts:85,models:1,note:"Max 1 per 2 platoons",limited:true}
+};
+
+const SU_UNITS=Object.keys(UNIT_DB).filter(k=>UNIT_DB[k].faction==="SU");
+const EC_UNITS=Object.keys(UNIT_DB).filter(k=>UNIT_DB[k].faction==="EC");
+
+const ASSET_LIMITS={
+  "500":{air:2,art:1},
+  "1000":{air:3,art:2},
+  "1500":{air:6,art:4}
+};
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let state={
+  faction:"SU",
+  size:"500",
+  platoons:[], // [{id, sections:[{uid, upgrade:bool}]}]
+  nextPlatoonId:1,
+  nextSectionId:1
+};
+
+// ═══════════════════════════════════════════════
+// SETUP
+// ═══════════════════════════════════════════════
+function setFaction(el){
+  document.querySelectorAll('[data-val="SU"],[data-val="EC"]').forEach(b=>{
+    if(b.closest('.tog-row')===el.closest('.tog-row'))b.classList.remove('active');
+  });
+  el.classList.add('active');
+  state.faction=el.dataset.val;
+  state.platoons=[];
+  state.nextPlatoonId=1;
+  state.nextSectionId=1;
+  refresh();
+}
+
+function setSize(el){
+  el.closest('.tog-row').querySelectorAll('.tog').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  state.size=el.dataset.val;
+  refresh();
+}
+
+// ═══════════════════════════════════════════════
+// PLATOON MANAGEMENT
+// ═══════════════════════════════════════════════
+function addPlatoon(){
+  state.platoons.push({id:state.nextPlatoonId++,sections:[]});
+  refresh();
+}
+
+function removePlatoon(pid){
+  state.platoons=state.platoons.filter(p=>p.id!==pid);
+  refresh();
+}
+
+function addSection(pid){
+  const sel=document.getElementById('addSec_'+pid);
+  if(!sel||!sel.value)return;
+  const uid=sel.value;
+  const p=state.platoons.find(p=>p.id===pid);
+  if(!p)return;
+  if(p.sections.length>=4){alert('Maximum 4 sections per platoon.');return;}
+  p.sections.push({sid:state.nextSectionId++,uid,upgrade:false});
+  refresh();
+}
+
+function removeSection(pid,sid){
+  const p=state.platoons.find(p=>p.id===pid);
+  if(!p)return;
+  p.sections=p.sections.filter(s=>s.sid!==sid);
+  refresh();
+}
+
+function toggleUpgrade(pid,sid){
+  const p=state.platoons.find(p=>p.id===pid);
+  if(!p)return;
+  const s=p.sections.find(s=>s.sid===sid);
+  if(!s)return;
+  s.upgrade=!s.upgrade;
+  refresh();
+}
+
+// ═══════════════════════════════════════════════
+// POINTS
+// ═══════════════════════════════════════════════
+function unitPts(uid,upgrade){
+  const u=UNIT_DB[uid];if(!u)return 0;
+  if(upgrade&&u.pts_upgrade)return u.pts_upgrade;
+  return u.pts;
+}
+
+function platoonPts(p){
+  return p.sections.reduce((a,s)=>a+unitPts(s.uid,s.upgrade),0);
+}
+
+function assetPts(){
+  const air=parseInt(document.getElementById('airstrikes').value)||0;
+  const art=parseInt(document.getElementById('artillery').value)||0;
+  return air*12+art*15;
+}
+
+function totalPts(){
+  return state.platoons.reduce((a,p)=>a+platoonPts(p),0)+assetPts();
+}
+
+// ═══════════════════════════════════════════════
+// VALIDATION
+// ═══════════════════════════════════════════════
+function validate(){
+  const warnings=[];
+  const limit=parseInt(state.size);
+  const tp=totalPts();
+  const air=parseInt(document.getElementById('airstrikes').value)||0;
+  const art=parseInt(document.getElementById('artillery').value)||0;
+  const lim=ASSET_LIMITS[state.size];
+
+  // Points
+  if(tp>limit) warnings.push({msg:`Over points limit: ${tp}/${limit}pts`,error:true});
+
+  // Company size
+  if(state.platoons.length<3) warnings.push({msg:`Company has ${state.platoons.length} platoon(s) — minimum 3 required`});
+  if(state.platoons.length>4) warnings.push({msg:`Company has ${state.platoons.length} platoons — maximum 4`,error:true});
+
+  // Assets
+  if(air>0&&art>0) warnings.push({msg:`Strategic assets: cannot mix airstrikes and artillery in same list`,error:true});
+  if(air>lim.air) warnings.push({msg:`Airstrikes exceed limit for ${state.size}pts (max ${lim.air})`,error:true});
+  if(art>lim.art) warnings.push({msg:`Artillery barrages exceed limit for ${state.size}pts (max ${lim.art})`,error:true});
+
+  // Limited units
+  const minPlatoons=state.platoons.length;
+  const maxLimited=Math.floor(minPlatoons/2);
+  let catCount=0,celestialCount=0;
+  state.platoons.forEach(p=>{
+    p.sections.forEach(s=>{
+      if(s.uid==="SU_cataphract")catCount++;
+      if(s.uid==="EC_celestial")celestialCount++;
+    });
+  });
+  if(catCount>maxLimited&&maxLimited>=1) warnings.push({msg:`Cataphract count (${catCount}) exceeds 1 per 2 platoons`});
+  if(celestialCount>maxLimited&&maxLimited>=1) warnings.push({msg:`Celestial Sword count (${celestialCount}) exceeds 1 per 2 platoons`});
+
+  // Per-platoon
+  state.platoons.forEach((p,i)=>{
+    const n=p.sections.length;
+    if(n===0) warnings.push({msg:`Platoon ${i+1}: no sections added`});
+    else if(n===1) warnings.push({msg:`Platoon ${i+1}: only 1 section — minimum 2 required`});
+    else if(n===2){
+      const a=p.sections[0].uid,b=p.sections[1].uid;
+      if(a!==b) warnings.push({msg:`Platoon ${i+1}: 2-section platoon must have matching unit types`});
+    }
+  });
+
+  return warnings;
+}
+
+// ═══════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════
+function refresh(){
+  renderPlatoons();
+  renderPoints();
+  renderWarnings();
+  renderAssetWarning();
+}
+
+function unitOptions(){
+  const keys=state.faction==="SU"?SU_UNITS:EC_UNITS;
+  return keys.map(k=>`<option value="${k}">${UNIT_DB[k].name} — ${UNIT_DB[k].pts}pts</option>`).join('');
+}
+
+function renderPlatoons(){
+  const c=document.getElementById('platoonContainer');
+  if(!state.platoons.length){
+    c.innerHTML='<div class="empty-state">No platoons yet — add your first platoon from the sidebar.</div>';
+    return;
+  }
+  c.innerHTML=state.platoons.map((p,pi)=>{
+    const pp=platoonPts(p);
+    const warnings=platoonWarnings(p,pi);
+    const sectionsHtml=p.sections.map(s=>{
+      const u=UNIT_DB[s.uid];if(!u)return '';
+      const pts=unitPts(s.uid,s.upgrade);
+      const hasUpgrade=u.upgrade&&state.faction==="EC"&&s.uid==="EC_jade_squad";
+      return `<div class="section-row">
+        <div class="section-name">
+          ${u.name}${s.upgrade?' <span style="color:#6ecf8e;font-size:10px">(+Gunner)</span>':''}
+          ${u.note?`<div style="font-size:10px;color:#555;margin-top:1px">${u.note}</div>`:''}
+        </div>
+        <div class="section-pts">${pts}pts</div>
+        <div class="section-actions">
+          ${hasUpgrade?`<button class="btn small ${s.upgrade?'warn':''}" onclick="toggleUpgrade(${p.id},${s.sid})">${s.upgrade?'−Gunner':'+Gunner'}</button>`:''}
+          <button class="btn small danger" onclick="removeSection(${p.id},${s.sid})">×</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="platoon">
+      <div class="platoon-header">
+        <span class="platoon-title">Platoon ${pi+1}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="platoon-pts">${pp}pts</span>
+          <button class="btn small danger" onclick="removePlatoon(${p.id})">Remove</button>
+        </div>
+      </div>
+      <div class="platoon-body">
+        ${sectionsHtml||'<div style="color:#555;font-size:11px;margin-bottom:8px">No sections — add units below</div>'}
+        ${warnings.map(w=>`<div class="platoon-warning">${w}</div>`).join('')}
+        <div class="add-section-row">
+          <select id="addSec_${p.id}">${unitOptions()}</select>
+          <button class="btn primary" onclick="addSection(${p.id})">+ Add</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function platoonWarnings(p,pi){
+  const w=[];
+  const n=p.sections.length;
+  if(n===1) w.push('Only 1 section — minimum 2');
+  if(n===2&&p.sections[0].uid!==p.sections[1].uid) w.push('2-section platoon must have matching unit types');
+  return w;
+}
+
+function renderPoints(){
+  const tp=totalPts();
+  const lim=parseInt(state.size);
+  const pct=Math.min(100,(tp/lim)*100);
+  document.getElementById('ptsUsed').textContent=tp;
+  document.getElementById('ptsLimit').textContent=`of ${lim}pts`;
+  document.getElementById('ptsRemain').textContent=`${Math.max(0,lim-tp)} remaining`;
+  const fill=document.getElementById('ptsFill');
+  fill.style.width=pct+'%';
+  fill.className='pts-fill'+(tp>lim?' over':tp>lim*0.9?' warn':'');
+}
+
+function renderWarnings(){
+  const ws=validate();
+  const panel=document.getElementById('warningsPanel');
+  if(!ws.length){panel.innerHTML='';return;}
+  panel.innerHTML=ws.map(w=>`<div class="warn-item${w.error?' error':''}">${w.error?'⚠ ':'△ '}${w.msg}</div>`).join('');
+}
+
+function renderAssetWarning(){
+  const air=parseInt(document.getElementById('airstrikes').value)||0;
+  const art=parseInt(document.getElementById('artillery').value)||0;
+  const el=document.getElementById('assetWarning');
+  const lim=ASSET_LIMITS[state.size];
+  if(air>0&&art>0){el.style.display='block';el.textContent='Cannot mix airstrikes and artillery';el.className='warn-item error';}
+  else if(air>lim.air){el.style.display='block';el.textContent=`Max ${lim.air} airstrikes at ${state.size}pts`;el.className='warn-item error';}
+  else if(art>lim.art){el.style.display='block';el.textContent=`Max ${lim.art} artillery at ${state.size}pts`;el.className='warn-item error';}
+  else{el.style.display='none';}
+}
+
+// ═══════════════════════════════════════════════
+// PRINT SHEET
+// ═══════════════════════════════════════════════
+function generatePrint(){
+  const name=document.getElementById('armyName').value||'Unnamed Force';
+  const air=parseInt(document.getElementById('airstrikes').value)||0;
+  const art=parseInt(document.getElementById('artillery').value)||0;
+  const tp=totalPts();
+  const ws=validate();
+  const factionName=state.faction==="SU"?"Sol Union":"Eastern Coalition";
+
+  let html=`<div class="p-header">
+    <div class="p-army-name">${name}</div>
+    <div class="p-meta">${factionName} · ${state.size}pt game · ${tp}pts used</div>
+  </div>`;
+
+  // Assets
+  if(air>0||art>0){
+    html+=`<div class="p-assets"><strong>Strategic assets:</strong> `;
+    if(air>0) html+=`${air}× Airstrike (D20, Blast 4, ${air*12}pts) `;
+    if(art>0) html+=`${art}× Artillery Barrage (D12 ROF 4, Blast 4, ${art*15}pts)`;
+    html+=`</div>`;
+  }
+
+  // Platoons
+  state.platoons.forEach((p,pi)=>{
+    html+=`<div class="p-platoon"><div class="p-platoon-title">Platoon ${pi+1} — ${platoonPts(p)}pts</div>`;
+    p.sections.forEach(s=>{
+      const u=UNIT_DB[s.uid];if(!u)return;
+      const pts=unitPts(s.uid,s.upgrade);
+      const wpnStr=u.weapons.filter(w=>w.rof>0).map(w=>`${w.n} (${w.dmg} ROF${w.rof}${w.rules?', '+w.rules:''})`).join(' | ');
+      html+=`<div class="p-unit">
+        <div class="p-unit-name"><span>${u.name}${s.upgrade?' + Jade Gunner':''}</span><span>${pts}pts</span></div>
+        <div class="p-stat-line">Role: ${u.role} · Skill: ${u.skill} · Move: ${u.move}" · Def: ${u.def} · Melee atk: ${u.melee}${u.models>1?' · Models: '+u.models:''}</div>
+        ${wpnStr?`<div class="p-weapons"><strong>Weapons:</strong> ${wpnStr}</div>`:''}
+        ${u.kw?`<div class="p-keywords">Keywords: ${u.kw}</div>`:''}
+        ${u.note?`<div class="p-keywords">${u.note}</div>`:''}
+        ${u.struct?`<div class="p-struct"><span class="p-struct-label">Structure (${u.struct}):</span>${Array(u.struct).fill('<span class="p-struct-box"></span>').join('')}</div>`:''}
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+
+  // Warnings
+  if(ws.length){
+    html+=`<div class="p-warnings"><strong>List warnings:</strong>`;
+    ws.forEach(w=>html+=`<div class="p-warn-item">${w.error?'⚠':'△'} ${w.msg}</div>`);
+    html+=`</div>`;
+  }
+
+  html+=`<div class="p-pts-summary">Total: ${tp}pts of ${state.size}pts</div>`;
+
+  document.getElementById('printSheet').innerHTML=html;
+  window.print();
+}
+
+// ── Init ──
+refresh();
+</script>
+</body>
+</html>

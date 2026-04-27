@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company of Ash — Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#1a1a1e;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column}
+
+/* ── Header ── */
+.header{padding:2.5rem 2rem 1.5rem;text-align:center;border-bottom:0.5px solid #2a2a32}
+.logo{font-size:32px;font-weight:700;letter-spacing:.04em;color:#f0f0f0}
+.logo span{color:#7ab8f5}
+.tagline{font-size:14px;color:#666;margin-top:6px;letter-spacing:.04em}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem}
+.subtitle{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:#555;margin-bottom:1.5rem;text-align:center}
+
+/* ── Tool cards ── */
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;width:100%;max-width:700px}
+.tool-card{background:#242428;border:0.5px solid #3a3a42;border-radius:14px;padding:1.5rem;text-decoration:none;color:inherit;transition:border-color .15s,background .15s;display:flex;flex-direction:column;gap:10px}
+.tool-card:hover{background:#2a2a30;border-color:#555}
+.tool-card:active{transform:scale(.99)}
+.tool-icon{font-size:28px;line-height:1}
+.tool-name{font-size:17px;font-weight:600;color:#f0f0f0}
+.tool-desc{font-size:13px;color:#888;line-height:1.6}
+.tool-features{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.feat{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+.feat.blue{background:#1a3a5c;color:#7ab8f5;border:0.5px solid #2a5a8c}
+.feat.amber{background:#3a2a00;color:#f5c842;border:0.5px solid #6a4a00}
+.feat.green{background:#0f2e1a;color:#6ecf8e;border:0.5px solid #1a5e32}
+.feat.red{background:#3a1010;color:#f57878;border:0.5px solid #6a2020}
+.tool-arrow{font-size:18px;color:#444;margin-top:auto;padding-top:8px;text-align:right;transition:color .15s}
+.tool-card:hover .tool-arrow{color:#7ab8f5}
+
+/* ── Footer ── */
+.footer{padding:1.25rem 2rem;border-top:0.5px solid #2a2a32;display:flex;justify-content:space-between;align-items:center;flex-wrap:gap}
+.footer-brand{font-size:12px;color:#444;letter-spacing:.06em}
+.footer-brand span{color:#666}
+.footer-note{font-size:11px;color:#3a3a42}
+
+/* ── Faction badge ── */
+.faction-row{display:flex;gap:8px;margin-top:4px}
+.faction{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500;letter-spacing:.05em}
+.faction.su{background:#1a2a4a;color:#5a8ad5;border:0.5px solid #2a4a7a}
+.faction.ec{background:#1a3a1a;color:#5ab55a;border:0.5px solid #2a5a2a}
+.faction.merc{background:#2a1a2a;color:#9a5ab5;border:0.5px solid #4a2a4a}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Company of <span>ASH</span></div>
+  <div class="tagline">Company-level combined arms in a Fractured Future</div>
+</div>
+
+<div class="main">
+  <div class="subtitle">Player tools</div>
+  <div class="tools">
+
+    <a class="tool-card" href="CoA_Combat_Calculator.html">
+      <div class="tool-icon">🎲</div>
+      <div class="tool-name">Combat Calculator</div>
+      <div class="faction-row">
+        <span class="faction su">Sol Union</span>
+        <span class="faction ec">Eastern Coalition</span>
+      </div>
+      <div class="tool-desc">
+        Resolve ranged fire and melee combat with full dice simulation.
+        Outputs casualties, suppression, structure damage, and critical
+        hit effects — no lookup required.
+      </div>
+      <div class="tool-features">
+        <span class="feat blue">Ranged fire</span>
+        <span class="feat blue">Melee resolution</span>
+        <span class="feat amber">Critical hit table</span>
+        <span class="feat green">Mixed squad composition</span>
+        <span class="feat red">APPD close defense</span>
+      </div>
+      <div class="tool-arrow">Open →</div>
+    </a>
+
+    <a class="tool-card" href="CoA_Army_Builder.html">
+      <div class="tool-icon">📋</div>
+      <div class="tool-name">Army Builder</div>
+      <div class="faction-row">
+        <span class="faction su">Sol Union</span>
+        <span class="faction ec">Eastern Coalition</span>
+      </div>
+      <div class="tool-desc">
+        Build and validate a company-level force. Enforces TOE platoon
+        structure, points limits, and faction rules. Generates a
+        printable army sheet with full stat blocks and vehicle
+        damage tracks.
+      </div>
+      <div class="tool-features">
+        <span class="feat blue">500 / 1000 / 1500pt</span>
+        <span class="feat green">TOE validation</span>
+        <span class="feat amber">Strategic assets</span>
+        <span class="feat blue">Printable sheet</span>
+      </div>
+      <div class="tool-arrow">Open →</div>
+    </a>
+
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-brand">Think Fox Social &nbsp;<span>·</span>&nbsp; Company of Ash v1.5</div>
+  <div class="footer-note">Tools are model-agnostic · 15mm designed</div>
+</div>
+
+</body>
+</html>
